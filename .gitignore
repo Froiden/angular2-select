@@ -17,12 +17,7 @@ npm-debug.log
 /coverage
 /ts
 
-
-/components/**/*.js
-/components/**/*.js.map
 /components/**/*.d.ts
-angular2-select.js
-angular2-select.js.map
 angular2-select.d.ts
 
 /logs

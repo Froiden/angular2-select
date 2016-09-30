@@ -8,6 +8,7 @@ import { OptionsBehavior } from './select-interfaces';
 import { escapeRegexp } from './common';
 import { OffClickDirective } from './off-click';
 import { Subject }   from "rxjs/Subject";
+import "rxjs/Rx";
 
 let styles = `
 .ui-select-toggle {
@@ -208,7 +209,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
   @Input() public idField:string = 'id';
   @Input() public textField:string = 'text';
   public multiple:boolean = false;
-  @Input() public dataObject:any = '';
+  @Input() public settings:any = '';
   public ajaxLoad:boolean = false;
 
   private searchSubject  = new Subject<string>();
@@ -395,67 +396,93 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this.doEvent('typed', this.inputValue);
     }
 
-    let urlString = this.originalUrl;
-    this.dataObject.url = urlString.replace('SEARCH_VALUE', e.target.value);
+    if(this.settings.ajax != undefined) {
+      let urlString = this.originalUrl;
+      this.settings.ajax.url = urlString.replace('SEARCH_VALUE', e.target.value);
+    }
+
 
     this.searchSubject.next(this.inputValue);
 
   }
 
   public sendUrlRequest() {
-    this.searchObserve.debounceTime(300).subscribe(
+    this.searchObserve.debounceTime(this.settings.debounceTime).subscribe(
         event  =>{
-            // Send http request
-            let headers = new Headers();
-            // Add auth header
-            if (this.dataObject.authToken)
-            {
-              headers.append("Authorization", "Bearer " + this.dataObject.authToken);
+
+            if(this.settings.data != undefined) {
+              let value = this.settings.data;
+              if (!value) {
+                this._items = this.itemObjects = [];
+              } else {
+                this._items = value.filter((item:any) => {
+                  if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                    return item;
+                  }
+                });
+
+                this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+              }
+              if(this.ajaxLoad === true) {
+                this.open();
+              }
+            }else if(this.settings.ajax != undefined) {
+              // Send http request
+              let headers = new Headers();
+              // Add auth header
+              if (this.settings.ajax.authToken)
+              {
+                headers.append("Authorization", "Bearer " + this.settings.ajax.authToken);
+              }
+              // Create request options
+              let requestOptions = new RequestOptions({
+                headers: headers
+              });
+
+              this.http.get(this.settings.ajax.url, requestOptions)
+                  .map((res:Response) => res.json())
+                  .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
+                  .subscribe(
+                      (data : any) => {
+
+                        let value = this.settings.responseData(data);
+
+                        if (!value) {
+                          this._items = this.itemObjects = [];
+                        } else {
+                          this._items = value.filter((item:any) => {
+                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                              return item;
+                            }
+                          });
+
+                          this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+                        }
+                        if(this.ajaxLoad === true) {
+                          this.open();
+                        }
+                      },
+                      (error : any) => {
+
+                      }
+                  );
             }
-            // Create request options
-            let requestOptions = new RequestOptions({
-              headers: headers
-            });
 
-            this.http.get(this.dataObject.url, requestOptions)
-                .map((res:Response) => res.json())
-                .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
-                .subscribe(
-                    (data : any) => {
 
-                      let value = this.dataObject.setResponseValue(data);
-
-                      if (!value) {
-                        this._items = this.itemObjects = [];
-                      } else {
-                        this._items = value.filter((item:any) => {
-                          if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
-                            return item;
-                          }
-                        });
-
-                        this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
-                      }
-                      if(this.ajaxLoad === true) {
-                        this.open();
-                      }
-                    },
-                    (error : any) => {
-
-                    }
-                );
         }
     );
 
   }
+
   public ngOnInit():any {
     this.behavior = (this.firstItemHasChildren) ?
       new ChildrenBehavior(this) : new GenericBehavior(this);
 
-    let jsonObject = this.dataObject;
+    let jsonObject = this.settings;
 
-    if(jsonObject.ajaxLoad) {
-      this.ajaxLoad = jsonObject.ajaxLoad;
+    if(jsonObject.ajax != undefined) {
+      this.ajaxLoad = true;
+      this.originalUrl = jsonObject.ajax.url;
     }
 
     if(jsonObject.allowClear) {
@@ -464,10 +491,6 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
 
     if(jsonObject.multiple) {
       this.multiple = jsonObject.multiple;
-    }
-
-    if(jsonObject.url) {
-      this.originalUrl = jsonObject.url;
     }
 
     if(jsonObject.placeholder) {
@@ -485,17 +508,49 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this.data.next(this.active);
       this.doEvent('removed', item);
 
-      let modelValue = this.dataObject.setNgModelObject(this.active);
-      this.onChangeCallback(modelValue);
+      if(this.settings.processResults != undefined) {
+        let modelValue = this.settings.processResults(this.active);
+        this.onChangeCallback(modelValue);
+      }else {
+        let modelValue = this.multiProcessResults(this.active);
+        this.onChangeCallback(modelValue);
+      }
+
     }
     if (this.multiple === false) {
       this.active = [];
       this.data.next(this.active);
       this.doEvent('removed', item);
 
-      let modelValue = this.dataObject.setNgModelObject(this.active);
-      this.onChangeCallback(modelValue);
+      if(this.settings.processResults != undefined) {
+        let modelValue = this.settings.processResults(this.active);
+        this.onChangeCallback(modelValue);
+      }else {
+        let modelValue = this.singleProcessResults(this.active);
+        this.onChangeCallback(modelValue);
+      }
+
     }
+  }
+
+  public singleProcessResults(modelObject : any) {
+    let selectValues : Array<any> = [];
+    selectValues.push({
+      id : modelObject.id,
+      textValue : modelObject.text,
+    });
+    return selectValues;
+  }
+
+  public multiProcessResults(modelObject : any) {
+    let selectValues : Array<any> = [];
+    modelObject.forEach((item : {id : number, text : string}) => {
+      selectValues.push({
+        id : item.id,
+        textValue : item.text,
+      });
+    });
+    return selectValues;
   }
 
   public doEvent(type:string, value:any):void {
@@ -606,12 +661,23 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this.active.push(value);
       this.data.next(this.active);
 
-      let modelValue = this.dataObject.setNgModelObject(this.active);
-      this.onChangeCallback(modelValue);
+      if(this.settings.processResults != undefined) {
+        let modelValue = this.settings.processResults(this.active);
+        this.onChangeCallback(modelValue);
+      }else {
+        let modelValue = this.multiProcessResults(this.active);
+        this.onChangeCallback(modelValue);
+      }
     }
+
     if (this.multiple === false) {
-      let modelValue = this.dataObject.setNgModelObject(value);
-      this.onChangeCallback(modelValue);
+      if(this.settings.processResults != undefined) {
+        let modelValue = this.settings.processResults(value);
+        this.onChangeCallback(modelValue);
+      }else {
+        let modelValue = this.singleProcessResults(value);
+        this.onChangeCallback(modelValue);
+      }
 
       this.active[0] = value;
       this.data.next(this.active[0]);
