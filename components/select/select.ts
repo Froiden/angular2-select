@@ -216,6 +216,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
   private searchObserve = this.searchSubject.asObservable();
 
   public originalUrl : string;
+  public requestType : string = "get";
 
   @Input()
   public set disabled(value:boolean) {
@@ -430,7 +431,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
               // Send http request
               let headers = new Headers();
               // Add auth header
-              if (this.settings.ajax.authToken)
+              if (this.settings.ajax.authToken != undefined)
               {
                 headers.append("Authorization", "Bearer " + this.settings.ajax.authToken);
               }
@@ -439,33 +440,64 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
                 headers: headers
               });
 
-              this.http.get(this.settings.ajax.url, requestOptions)
-                  .map((res:Response) => res.json())
-                  .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
-                  .subscribe(
-                      (data : any) => {
+              if(this.requestType == "get" || this.requestType == "GET") {
+                this.http.get(this.settings.ajax.url, requestOptions)
+                    .map((res:Response) => res.json())
+                    .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
+                    .subscribe(
+                        (data : any) => {
 
-                        let value = this.settings.responseData(data);
+                          let value = this.settings.ajax.responseData(data);
 
-                        if (!value) {
-                          this._items = this.itemObjects = [];
-                        } else {
-                          this._items = value.filter((item:any) => {
-                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
-                              return item;
-                            }
-                          });
+                          if (!value) {
+                            this._items = this.itemObjects = [];
+                          } else {
+                            this._items = value.filter((item:any) => {
+                              if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                                return item;
+                              }
+                            });
 
-                          this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+                            this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+                          }
+                          if(this.ajaxLoad === true) {
+                            this.open();
+                          }
+                        },
+                        (error : any) => {
+
                         }
-                        if(this.ajaxLoad === true) {
-                          this.open();
-                        }
-                      },
-                      (error : any) => {
+                    );
+              }else if(this.requestType == "post" || this.requestType == "POST") {
+                this.http.post(this.settings.ajax.url, requestOptions)
+                    .map((res:Response) => res.json())
+                    .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
+                    .subscribe(
+                        (data : any) => {
 
-                      }
-                  );
+                          let value = this.settings.ajax.responseData(data);
+
+                          if (!value) {
+                            this._items = this.itemObjects = [];
+                          } else {
+                            this._items = value.filter((item:any) => {
+                              if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                                return item;
+                              }
+                            });
+
+                            this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+                          }
+                          if(this.ajaxLoad === true) {
+                            this.open();
+                          }
+                        },
+                        (error : any) => {
+
+                        }
+                    );
+              }
+
             }
 
 
@@ -483,7 +515,13 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
     if(jsonObject.ajax != undefined) {
       this.ajaxLoad = true;
       this.originalUrl = jsonObject.ajax.url;
+
+      if(jsonObject.ajax.requestType != undefined) {
+        this.requestType = jsonObject.ajax.requestType;
+      }
     }
+
+
 
     if(jsonObject.allowClear) {
       this.allowClear = jsonObject.allowClear;

@@ -141,6 +141,7 @@ let SelectComponent = class SelectComponent {
         this.ajaxLoad = false;
         this.searchSubject = new Subject_1.Subject();
         this.searchObserve = this.searchSubject.asObservable();
+        this.requestType = "get";
         this.data = new core_1.EventEmitter();
         this.selected = new core_1.EventEmitter();
         this.removed = new core_1.EventEmitter();
@@ -324,34 +325,59 @@ let SelectComponent = class SelectComponent {
                 // Send http request
                 let headers = new http_1.Headers();
                 // Add auth header
-                if (this.settings.ajax.authToken) {
+                if (this.settings.ajax.authToken != undefined) {
                     headers.append("Authorization", "Bearer " + this.settings.ajax.authToken);
                 }
                 // Create request options
                 let requestOptions = new http_1.RequestOptions({
                     headers: headers
                 });
-                this.http.get(this.settings.ajax.url, requestOptions)
-                    .map((res) => res.json())
-                    .catch((error) => Observable_1.Observable.throw(error.json().error || 'Server error'))
-                    .subscribe((data) => {
-                    let value = this.settings.responseData(data);
-                    if (!value) {
-                        this._items = this.itemObjects = [];
-                    }
-                    else {
-                        this._items = value.filter((item) => {
-                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
-                                return item;
-                            }
-                        });
-                        this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField] })));
-                    }
-                    if (this.ajaxLoad === true) {
-                        this.open();
-                    }
-                }, (error) => {
-                });
+                if (this.requestType == "get" || this.requestType == "GET") {
+                    this.http.get(this.settings.ajax.url, requestOptions)
+                        .map((res) => res.json())
+                        .catch((error) => Observable_1.Observable.throw(error.json().error || 'Server error'))
+                        .subscribe((data) => {
+                        let value = this.settings.ajax.responseData(data);
+                        if (!value) {
+                            this._items = this.itemObjects = [];
+                        }
+                        else {
+                            this._items = value.filter((item) => {
+                                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                                    return item;
+                                }
+                            });
+                            this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField] })));
+                        }
+                        if (this.ajaxLoad === true) {
+                            this.open();
+                        }
+                    }, (error) => {
+                    });
+                }
+                else if (this.requestType == "post" || this.requestType == "POST") {
+                    this.http.post(this.settings.ajax.url, requestOptions)
+                        .map((res) => res.json())
+                        .catch((error) => Observable_1.Observable.throw(error.json().error || 'Server error'))
+                        .subscribe((data) => {
+                        let value = this.settings.ajax.responseData(data);
+                        if (!value) {
+                            this._items = this.itemObjects = [];
+                        }
+                        else {
+                            this._items = value.filter((item) => {
+                                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                                    return item;
+                                }
+                            });
+                            this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField] })));
+                        }
+                        if (this.ajaxLoad === true) {
+                            this.open();
+                        }
+                    }, (error) => {
+                    });
+                }
             }
         });
     }
@@ -362,6 +388,9 @@ let SelectComponent = class SelectComponent {
         if (jsonObject.ajax != undefined) {
             this.ajaxLoad = true;
             this.originalUrl = jsonObject.ajax.url;
+            if (jsonObject.ajax.requestType != undefined) {
+                this.requestType = jsonObject.ajax.requestType;
+            }
         }
         if (jsonObject.allowClear) {
             this.allowClear = jsonObject.allowClear;
