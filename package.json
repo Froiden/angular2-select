@@ -1,7 +1,7 @@
 {
   "name": "froiden-angular2-select",
-  "version": "2.0.10",
-  "description": "Angular2 based replacement for select boxes",
+  "version": "2.0.13",
+  "description": "Angular2 ajax based replacement for select boxes",
   "main": "angular2-select.js",
   "typings": "angular2-select.d.ts",
   "keywords": [

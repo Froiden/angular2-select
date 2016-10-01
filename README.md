@@ -59,51 +59,187 @@ import {AppComponent} from './app.component';
 export class AppModule { }
 ```
 
-
 Add the following HTML to the component template in which you want to use the
 select component:
 
 ```html
 <ng-select name="countries" [(ngModel)]="countries"
-           [dataObject]="selectOptions">
+           [settings]="selectOptions">
 </ng-select>
 ```
 
-Within the component class you have to set the countries and dataObject variable.
+Within the component class you have to set the countries and dataObject variable. We can set select2 data using ajax or without
+ajax.
+
+### Without Ajax request
 
 ```typescript
-  public countries : any;
-  private selectOptions = {
-      "multiple" : true,
-      "ajaxLoad" : true,
-      "allowClear" : true,
-      "placeholder" : "Select countries...",
-      "url"      : YOUR API URL,
-      "authToken": AUTH TOKEN FOR Request,
-      setResponseValue : (response : any) => {
-          let currentValue = response.data;
-          let value : Array<any> = [];
-          currentValue.forEach((item : {id : number, name : string}) => {
-              value.push({
-                  id  : item.id,
-                  text: item.name
-              });
-          });
-          return value;
-      },
-      setNgModelObject : (modelObject : any) => {
-          let selectValues : Array<any> = [];
-          modelObject.forEach((item : {id : number, text : string}) => {
-              selectValues.push({
-                  id : item.id,
-                  textValue : item.text,
-              });
-          });
-          return selectValues;
-      }
-  };
-  ```
+    public countries : any;
+    private selectOptions = {
+        "multiple" : true,
+        "allowClear" : true,
+        "debounceTime" : 300,
+        "placeholder" : "Select countries...",
+        data :   [
+            {
+                "id" : 1,
+                "text" : "India"
+            },
+            {
+                "id" : 2,
+                "text" : "Bangladesh"
+            },
+            .....
+        ],
+        processResults : (modelObject : any) => {
+            let selectValues : Array<any> = [];
+            modelObject.forEach((item : {id : number, text : string}) => {
+                selectValues.push({
+                    id : item.id,
+                    textValue : item.text,
+                });
+            });
+            return selectValues;
+        }
+    }
+```
 
-## Input properties
+### With Ajax request
 
-You need set `[(ngModel)]` two way property binding and `dataObject` input property in ng-select tag:
+```typescript
+    public countries : any;
+    private selectOptions = {
+        "multiple" : true,
+        "allowClear" : true,
+        "debounceTime" : 300,
+        "placeholder" : "Select countries...",
+        ajax : {
+            "requestType" : "get",
+            "url"      : 'http://demo.com/api/countries?fields=id|name&limit=-1&filters={"name":{"type":"search","value":"SEARCH_VALUE"}}',
+            "authToken": AUTH TOKEN IF REQUIRED,
+            responseData : (response : any) => {
+                let currentValue = response.data;
+                let value : Array<any> = [];
+                currentValue.forEach((item : {id : number, name : string}) => {
+                    value.push({
+                        id  : item.id,
+                        text: item.name
+                    });
+                });
+                return value;
+            }
+        },
+        processResults : (modelObject : any) => {
+            let selectValues : Array<any> = [];
+            modelObject.forEach((item : {id : number, text : string}) => {
+                selectValues.push({
+                    id : item.id,
+                    textValue : item.text,
+                });
+            });
+            return selectValues;
+        }
+    }
+```
+NOTE: Always put `SEARCH_VALUE` in your `url`. We will automatically replace `SEARCH_VALUE` with input entered by you.
+
+## [(ngModel)]
+You need to set `[(ngModel)]` with your Component variable for which you want two way data binding.
+
+## Input properties (selectOptions)
+
+### multiple
+
+*true/false*
+
+A boolean to choose between single and multi-select.
+
+### allowClear
+
+*true/false*
+
+If set to true, a button with a cross that can be used to clear the currently
+selected option is shown if an option is selected.
+
+### debounceTime
+
+*Integer value*
+
+Time for which you want to wait to appear select options.
+
+### placeholder
+
+*default: ''*
+
+The placeholder value is shown if no option is selected.
+
+### processResults
+
+Callback function to set ngModel array of object.For without ajax request:
+
+```
+processResults : (modelObject : any) => {
+    let selectValues : Array<any> = [];
+    selectValues.push({
+        id : item.id,
+        textValue : item.text,
+    });
+    return selectValues;
+}
+```
+
+For ajax request result
+
+```
+processResults : (modelObject : any) => {
+    let selectValues : Array<any> = [];
+    modelObject.forEach((item : {id : number, text : string}) => {
+        selectValues.push({
+            id : item.id,
+            textValue : item.text,
+        });
+    });
+    return selectValues;
+}
+```
+
+## Input properties (selectOptions.ajax)
+If you want to use ajax request to fetch data from url and want to render this data into your select option then we will use
+following properties:
+
+### requestType
+
+*get/post*
+
+Request type for url address.
+
+### url
+
+*string*
+
+URL address from where you will fetch data for select options.
+NOTE: Always put `SEARCH_VALUE` in your `url`. We will automatically replace `SEARCH_VALUE` with input entered by you.
+
+### authToken (optional)
+
+*string*
+
+If your url endpoint uses auth token then assign to authToken
+
+### responseData
+
+Callback function to set select option values:
+
+```
+responseData : (response : any) => {
+    let currentValue = response.data;
+    let value : Array<any> = [];
+    currentValue.forEach((item : {id : number, name : string}) => {
+        value.push({
+            id  : item.id,
+            text: item.name
+        });
+    });
+    return value;
+}
+```
