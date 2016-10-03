@@ -175,7 +175,8 @@ The placeholder value is shown if no option is selected.
 
 ### processResults
 
-Callback function to set ngModel array of object.For without ajax request:
+Callback function to set ngModel array of object.
+For single select:
 
 ```
 processResults : (modelObject : any) => {
@@ -188,7 +189,7 @@ processResults : (modelObject : any) => {
 }
 ```
 
-For ajax request result
+For multiple select :
 
 ```
 processResults : (modelObject : any) => {

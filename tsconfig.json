@@ -27,7 +27,6 @@
     "dist"
   ],
   "files": [
-    "./demo/custom-typings.d.ts",
     "./angular2-select.ts"
   ]
 }
