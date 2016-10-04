@@ -10,77 +10,6 @@ import { OffClickDirective } from './off-click';
 import { Subject }   from "rxjs/Subject";
 import "rxjs/Rx";
 
-let styles = `
-.ui-select-toggle {
-  position: relative;
-
-  /* hardcoded, should use variable from bootstrap */
-  padding: 0.375rem 0.75rem;
-}
-
-/* Fix Bootstrap dropdown position when inside a input-group */
-.input-group > .dropdown {
-  /* Instead of relative */
-  position: static;
-}
-
-.ui-select-match > .btn {
-  /* Instead of center because of .btn */
-  text-align: left !important;
-}
-
-.ui-select-match > .caret {
-  position: absolute;
-  top: 45%;
-  right: 15px;
-}
-
-.ui-disabled {
-  background-color: #eceeef;
-  border-radius: 4px;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 5;
-  opacity: 0.6;
-  top: 0;
-  left: 0;
-  cursor: not-allowed;
-}
-
-.ui-select-choices {
-  width: 100%;
-  height: auto;
-  max-height: 200px;
-  overflow-x: hidden;
-  margin-top: 0;
-}
-
-.ui-select-multiple .ui-select-choices {
-  margin-top: 1px;
-}
-
-.ui-select-multiple {
-  height: auto;
-  padding: 3px 3px 0 3px;
-}
-
-.ui-select-multiple input.ui-select-search {
-  background-color: transparent !important; /* To prevent double background when disabled */
-  border: none;
-  outline: none;
-  height: 1.9em;
-  margin-bottom: 3px;
-
-  /* hardcoded, should use variable from bootstrap, but must be adjusted because... reasons */
-  padding: 0.375rem 0.55rem;
-}
-
-.ui-select-multiple .ui-select-match-item {
-  outline: 0;
-  margin: 0 3px 3px 0;
-}
-`;
 
 let optionsTemplate = `
     <ul *ngIf="optionsOpened && options && options.length > 0 && !firstItemHasChildren"
@@ -128,7 +57,6 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
 
 @Component({
   selector: 'ng-select',
-  styles: [styles],
   template: `
   <div tabindex="0"
      *ngIf="multiple === false"
@@ -139,7 +67,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     <div class="ui-select-match"
          *ngIf="!inputMode">
       <span tabindex="-1"
-          class="btn btn-default btn-secondary form-control ui-select-toggle"
+          class="btn btn-default btn-secondary ui-select-toggle"
           (click)="matchClick($event)"
           style="outline: 0;">
         <span *ngIf="active.length <= 0" class="ui-select-placeholder text-muted">{{placeholder}}</span>
@@ -159,7 +87,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
            (keydown)="inputEvent($event)"
            (keyup)="inputEvent($event, true)"
            [disabled]="disabled"
-           class="form-control ui-select-search"
+           class="ui-select-search"
            *ngIf="inputMode"
            placeholder="{{active.length <= 0 ? placeholder : ''}}">
       ${optionsTemplate}
@@ -169,7 +97,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
      *ngIf="multiple === true"
      (keyup)="mainClick($event)"
      (focus)="focusToInput('')"
-     class="ui-select-container ui-select-multiple dropdown form-control open">
+     class="ui-select-container ui-select-multiple dropdown open">
     <div [ngClass]="{'ui-disabled': disabled}"></div>
     <span class="ui-select-match">
         <span *ngFor="let a of active">
@@ -194,7 +122,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
            autocorrect="off"
            autocapitalize="off"
            spellcheck="false"
-           class="form-control ui-select-search"
+           class="ui-select-search"
            placeholder="{{active.length <= 0 ? placeholder : ''}}"
            role="combobox">
     ${optionsTemplate}

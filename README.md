@@ -9,7 +9,17 @@
 npm install --save froiden-angular2-select
 ```
 
+## Examples
+
+1. [Without Ajax Single Select](https://plnkr.co/edit/QfGAEyv52byhJIw491YM)
+2. [Without Ajax Multi Select](https://plnkr.co/edit/tpPFFf8T1yUrVCCxrXu3)
+3. [With Ajax Single Select](https://plnkr.co/edit/iAyag6)
+4. [With Ajax Multi Select](https://plnkr.co/edit/Ngqrpwr8rbX5QmZApwYA)
+
 ### Configuration
+
+#### Add style.css
+Include style.css in your controller.
 
 #### Systemjs
 
