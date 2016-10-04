@@ -19,7 +19,7 @@ npm install --save froiden-angular2-select
 ### Configuration
 
 #### Add style.css
-Include style.css in your controller.
+Include [style.css](https://github.com/Froiden/angular2-select/blob/master/css/style.css) in your controller.
 
 #### Systemjs
 
