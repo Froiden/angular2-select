@@ -62,12 +62,12 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
      *ngIf="multiple === false"
      (keyup)="mainClick($event)"
      [offClick]="clickedOutside"
-     class="ui-select-container dropdown open">
+     class="ui-select-container singleselect dropdown open">
     <div [ngClass]="{'ui-disabled': disabled}"></div>
     <div class="ui-select-match"
          *ngIf="!inputMode">
       <span tabindex="-1"
-          class="btn btn-default btn-secondary ui-select-toggle"
+          class="btn-select btn-select-default btn-select-secondary single-span ui-select-toggle"
           (click)="matchClick($event)"
           style="outline: 0;">
         <span *ngIf="active.length <= 0" class="ui-select-placeholder text-muted">{{placeholder}}</span>
@@ -87,7 +87,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
            (keydown)="inputEvent($event)"
            (keyup)="inputEvent($event, true)"
            [disabled]="disabled"
-           class="ui-select-search"
+           class="ui-select-search singleInput"
            *ngIf="inputMode"
            placeholder="{{active.length <= 0 ? placeholder : ''}}">
       ${optionsTemplate}
@@ -97,14 +97,14 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
      *ngIf="multiple === true"
      (keyup)="mainClick($event)"
      (focus)="focusToInput('')"
-     class="ui-select-container ui-select-multiple dropdown open">
+     class="ui-select-container multiselect ui-select-multiple dropdown open">
     <div [ngClass]="{'ui-disabled': disabled}"></div>
     <span class="ui-select-match">
         <span *ngFor="let a of active">
-            <span class="ui-select-match-item btn btn-default btn-secondary btn-sm"
+            <span class="ui-select-match-item btn-select btn-select-default btn-select-secondary multiple-span btn-select-sm"
                   tabindex="-1"
                   type="button"
-                  [ngClass]="{'btn-default': true}">
+                  [ngClass]="{'btn-select-default': true}">
                <a class="close"
                   style="margin-left: 10px; padding: 0;"
                   (click)="remove(a)">&times;</a>
@@ -122,7 +122,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
            autocorrect="off"
            autocapitalize="off"
            spellcheck="false"
-           class="ui-select-search"
+           class="ui-select-search multiInput"
            placeholder="{{active.length <= 0 ? placeholder : ''}}"
            role="combobox">
     ${optionsTemplate}
@@ -166,8 +166,8 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
 
       this._active = selectedItems.map((item:any) => {
         let data = areItemsStrings
-          ? item
-          : { id: item[this.idField], text: item[this.textField] };
+            ? item
+            : { id: item[this.idField], text: item[this.textField] };
 
         return new SelectItem(data);
       });
@@ -253,14 +253,14 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       return;
     }
     if (isUpMode && (e.keyCode === 37 || e.keyCode === 39 || e.keyCode === 38 ||
-      e.keyCode === 40 || e.keyCode === 13)) {
+        e.keyCode === 40 || e.keyCode === 13)) {
       e.preventDefault();
       return;
     }
     // backspace
     if (!isUpMode && e.keyCode === 8) {
       let el:any = this.element.nativeElement
-        .querySelector('div.ui-select-container > input');
+          .querySelector('div.ui-select-container > input');
       if (!el.value || el.value.length <= 0) {
         if (this.active.length > 0) {
           this.remove(this.active[this.active.length - 1]);
@@ -339,94 +339,94 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
     this.searchObserve.debounceTime(this.settings.debounceTime).subscribe(
         event  =>{
 
-            if(this.settings.data != undefined) {
-              let value = this.settings.data;
-              if (!value) {
-                this._items = this.itemObjects = [];
-              } else {
-                this._items = value.filter((item:any) => {
-                  if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
-                    return item;
-                  }
-                });
-
-                this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
-              }
-              if(this.ajaxLoad === true) {
-                this.open();
-              }
-            }else if(this.settings.ajax != undefined) {
-              // Send http request
-              let headers = new Headers();
-              // Add auth header
-              if (this.settings.ajax.authToken != undefined)
-              {
-                headers.append("Authorization", "Bearer " + this.settings.ajax.authToken);
-              }
-              // Create request options
-              let requestOptions = new RequestOptions({
-                headers: headers
+          if(this.settings.data != undefined) {
+            let value = this.settings.data;
+            if (!value) {
+              this._items = this.itemObjects = [];
+            } else {
+              this._items = value.filter((item:any) => {
+                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                  return item;
+                }
               });
 
-              if(this.requestType == "get" || this.requestType == "GET") {
-                this.http.get(this.settings.ajax.url, requestOptions)
-                    .map((res:Response) => res.json())
-                    .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
-                    .subscribe(
-                        (data : any) => {
-
-                          let value = this.settings.ajax.responseData(data);
-
-                          if (!value) {
-                            this._items = this.itemObjects = [];
-                          } else {
-                            this._items = value.filter((item:any) => {
-                              if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
-                                return item;
-                              }
-                            });
-
-                            this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
-                          }
-                          if(this.ajaxLoad === true) {
-                            this.open();
-                          }
-                        },
-                        (error : any) => {
-
-                        }
-                    );
-              }else if(this.requestType == "post" || this.requestType == "POST") {
-                this.http.post(this.settings.ajax.url, requestOptions)
-                    .map((res:Response) => res.json())
-                    .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
-                    .subscribe(
-                        (data : any) => {
-
-                          let value = this.settings.ajax.responseData(data);
-
-                          if (!value) {
-                            this._items = this.itemObjects = [];
-                          } else {
-                            this._items = value.filter((item:any) => {
-                              if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
-                                return item;
-                              }
-                            });
-
-                            this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
-                          }
-                          if(this.ajaxLoad === true) {
-                            this.open();
-                          }
-                        },
-                        (error : any) => {
-
-                        }
-                    );
-              }
-
+              this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
             }
+            if(this.ajaxLoad === true) {
+              this.open();
+            }
+          }else if(this.settings.ajax != undefined) {
+            // Send http request
+            let headers = new Headers();
+            // Add auth header
+            if (this.settings.ajax.authToken != undefined)
+            {
+              headers.append("Authorization", "Bearer " + this.settings.ajax.authToken);
+            }
+            // Create request options
+            let requestOptions = new RequestOptions({
+              headers: headers
+            });
+
+            if(this.requestType == "get" || this.requestType == "GET") {
+              this.http.get(this.settings.ajax.url, requestOptions)
+                  .map((res:Response) => res.json())
+                  .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
+                  .subscribe(
+                      (data : any) => {
+
+                        let value = this.settings.ajax.responseData(data);
+
+                        if (!value) {
+                          this._items = this.itemObjects = [];
+                        } else {
+                          this._items = value.filter((item:any) => {
+                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                              return item;
+                            }
+                          });
+
+                          this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+                        }
+                        if(this.ajaxLoad === true) {
+                          this.open();
+                        }
+                      },
+                      (error : any) => {
+
+                      }
+                  );
+            }else if(this.requestType == "post" || this.requestType == "POST") {
+              this.http.post(this.settings.ajax.url, requestOptions)
+                  .map((res:Response) => res.json())
+                  .catch((error:any) => Observable.throw(error.json().error || 'Server error'))
+                  .subscribe(
+                      (data : any) => {
+
+                        let value = this.settings.ajax.responseData(data);
+
+                        if (!value) {
+                          this._items = this.itemObjects = [];
+                        } else {
+                          this._items = value.filter((item:any) => {
+                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                              return item;
+                            }
+                          });
+
+                          this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+                        }
+                        if(this.ajaxLoad === true) {
+                          this.open();
+                        }
+                      },
+                      (error : any) => {
+
+                      }
+                  );
+            }
+
+          }
 
 
         }
@@ -436,7 +436,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
 
   public ngOnInit():any {
     this.behavior = (this.firstItemHasChildren) ?
-      new ChildrenBehavior(this) : new GenericBehavior(this);
+        new ChildrenBehavior(this) : new GenericBehavior(this);
 
     let jsonObject = this.settings;
 
@@ -560,14 +560,14 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       return;
     }
     if (event.keyCode === 9 || event.keyCode === 13 ||
-      event.keyCode === 27 || (event.keyCode >= 37 && event.keyCode <= 40)) {
+        event.keyCode === 27 || (event.keyCode >= 37 && event.keyCode <= 40)) {
       event.preventDefault();
       return;
     }
     this.inputMode = true;
     let value = String
-      .fromCharCode(96 <= event.keyCode && event.keyCode <= 105 ? event.keyCode - 48 : event.keyCode)
-      .toLowerCase();
+        .fromCharCode(96 <= event.keyCode && event.keyCode <= 105 ? event.keyCode - 48 : event.keyCode)
+        .toLowerCase();
     this.focusToInput(value);
     this.open();
     let target = event.target || event.srcElement;
@@ -595,9 +595,9 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
 
   private open():void {
     this.options = this.itemObjects
-      .filter((option: SelectItem) => (this.multiple === false ||
-      this.multiple === true &&
-      !this.active.find((o:SelectItem) => option.text === o.text)));
+        .filter((option: SelectItem) => (this.multiple === false ||
+        this.multiple === true &&
+        !this.active.find((o:SelectItem) => option.text === o.text)));
 
     if (this.options.length > 0) {
       this.behavior.first();
@@ -671,9 +671,9 @@ export class Behavior {
     this.optionsMap.clear();
     let startPos = 0;
     this.actor.itemObjects
-      .map((item:SelectItem) => {
-        startPos = item.fillChildrenHash(this.optionsMap, startPos);
-      });
+        .map((item:SelectItem) => {
+          startPos = item.fillChildrenHash(this.optionsMap, startPos);
+        });
   }
 
   public ensureHighlightVisible(optionsMap:Map<string, number> = void 0):void {
@@ -729,24 +729,24 @@ export class GenericBehavior extends Behavior implements OptionsBehavior {
   public prev():void {
     let index = this.actor.options.indexOf(this.actor.activeOption);
     this.actor.activeOption = this.actor
-      .options[index - 1 < 0 ? this.actor.options.length - 1 : index - 1];
+        .options[index - 1 < 0 ? this.actor.options.length - 1 : index - 1];
     super.ensureHighlightVisible();
   }
 
   public next():void {
     let index = this.actor.options.indexOf(this.actor.activeOption);
     this.actor.activeOption = this.actor
-      .options[index + 1 > this.actor.options.length - 1 ? 0 : index + 1];
+        .options[index + 1 > this.actor.options.length - 1 ? 0 : index + 1];
     super.ensureHighlightVisible();
   }
 
   public filter(query:RegExp):void {
     let options = this.actor.itemObjects
-      .filter((option:SelectItem) => {
-        return stripTags(option.text).match(query) &&
-          (this.actor.multiple === false ||
-          (this.actor.multiple === true && this.actor.active.map((item: SelectItem) => item.id).indexOf(option.id) < 0));
-      });
+        .filter((option:SelectItem) => {
+          return stripTags(option.text).match(query) &&
+              (this.actor.multiple === false ||
+              (this.actor.multiple === true && this.actor.active.map((item: SelectItem) => item.id).indexOf(option.id) < 0));
+        });
     this.actor.options = options;
     if (this.actor.options.length > 0) {
       this.actor.activeOption = this.actor.options[0];
@@ -768,24 +768,24 @@ export class ChildrenBehavior extends Behavior implements OptionsBehavior {
 
   public last():void {
     this.actor.activeOption =
-      this.actor
-        .options[this.actor.options.length - 1]
-        .children[this.actor.options[this.actor.options.length - 1].children.length - 1];
+        this.actor
+            .options[this.actor.options.length - 1]
+            .children[this.actor.options[this.actor.options.length - 1].children.length - 1];
     this.fillOptionsMap();
     this.ensureHighlightVisible(this.optionsMap);
   }
 
   public prev():void {
     let indexParent = this.actor.options
-      .findIndex((option:SelectItem) => this.actor.activeOption.parent && this.actor.activeOption.parent.id === option.id);
+        .findIndex((option:SelectItem) => this.actor.activeOption.parent && this.actor.activeOption.parent.id === option.id);
     let index = this.actor.options[indexParent].children
-      .findIndex((option:SelectItem) => this.actor.activeOption && this.actor.activeOption.id === option.id);
+        .findIndex((option:SelectItem) => this.actor.activeOption && this.actor.activeOption.id === option.id);
     this.actor.activeOption = this.actor.options[indexParent].children[index - 1];
     if (!this.actor.activeOption) {
       if (this.actor.options[indexParent - 1]) {
         this.actor.activeOption = this.actor
-          .options[indexParent - 1]
-          .children[this.actor.options[indexParent - 1].children.length - 1];
+            .options[indexParent - 1]
+            .children[this.actor.options[indexParent - 1].children.length - 1];
       }
     }
     if (!this.actor.activeOption) {
@@ -797,9 +797,9 @@ export class ChildrenBehavior extends Behavior implements OptionsBehavior {
 
   public next():void {
     let indexParent = this.actor.options
-      .findIndex((option:SelectItem) => this.actor.activeOption.parent && this.actor.activeOption.parent.id === option.id);
+        .findIndex((option:SelectItem) => this.actor.activeOption.parent && this.actor.activeOption.parent.id === option.id);
     let index = this.actor.options[indexParent].children
-      .findIndex((option:SelectItem) => this.actor.activeOption && this.actor.activeOption.id === option.id);
+        .findIndex((option:SelectItem) => this.actor.activeOption && this.actor.activeOption.id === option.id);
     this.actor.activeOption = this.actor.options[indexParent].children[index + 1];
     if (!this.actor.activeOption) {
       if (this.actor.options[indexParent + 1]) {

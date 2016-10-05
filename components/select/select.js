@@ -553,12 +553,12 @@ SelectComponent = __decorate([
      *ngIf="multiple === false"
      (keyup)="mainClick($event)"
      [offClick]="clickedOutside"
-     class="ui-select-container dropdown open">
+     class="ui-select-container singleselect dropdown open">
     <div [ngClass]="{'ui-disabled': disabled}"></div>
     <div class="ui-select-match"
          *ngIf="!inputMode">
       <span tabindex="-1"
-          class="btn btn-default btn-secondary ui-select-toggle"
+          class="btn-select btn-select-default btn-select-secondary single-span ui-select-toggle"
           (click)="matchClick($event)"
           style="outline: 0;">
         <span *ngIf="active.length <= 0" class="ui-select-placeholder text-muted">{{placeholder}}</span>
@@ -578,7 +578,7 @@ SelectComponent = __decorate([
            (keydown)="inputEvent($event)"
            (keyup)="inputEvent($event, true)"
            [disabled]="disabled"
-           class="ui-select-search"
+           class="ui-select-search singleInput"
            *ngIf="inputMode"
            placeholder="{{active.length <= 0 ? placeholder : ''}}">
       ${optionsTemplate}
@@ -588,14 +588,14 @@ SelectComponent = __decorate([
      *ngIf="multiple === true"
      (keyup)="mainClick($event)"
      (focus)="focusToInput('')"
-     class="ui-select-container ui-select-multiple dropdown open">
+     class="ui-select-container multiselect ui-select-multiple dropdown open">
     <div [ngClass]="{'ui-disabled': disabled}"></div>
     <span class="ui-select-match">
         <span *ngFor="let a of active">
-            <span class="ui-select-match-item btn btn-default btn-secondary btn-sm"
+            <span class="ui-select-match-item btn-select btn-select-default btn-select-secondary multiple-span btn-select-sm"
                   tabindex="-1"
                   type="button"
-                  [ngClass]="{'btn-default': true}">
+                  [ngClass]="{'btn-select-default': true}">
                <a class="close"
                   style="margin-left: 10px; padding: 0;"
                   (click)="remove(a)">&times;</a>
@@ -613,7 +613,7 @@ SelectComponent = __decorate([
            autocorrect="off"
            autocapitalize="off"
            spellcheck="false"
-           class="ui-select-search"
+           class="ui-select-search multiInput"
            placeholder="{{active.length <= 0 ? placeholder : ''}}"
            role="combobox">
     ${optionsTemplate}

@@ -16,10 +16,23 @@ npm install --save froiden-angular2-select
 3. [With Ajax Single Select](https://plnkr.co/edit/iAyag6)
 4. [With Ajax Multi Select](https://plnkr.co/edit/Ngqrpwr8rbX5QmZApwYA)
 
-### Configuration
+## Add angular2-select.css
+Include [angular2-select.css](https://github.com/Froiden/angular2-select/blob/master/css/angular2-select.css) in your controller.
+Add css in your component class
 
-#### Add style.css
-Include [style.css](https://github.com/Froiden/angular2-select/blob/master/css/style.css) in your controller.
+```typescript
+    import { Component} from "@angular/core";
+    .......
+
+    @Component({
+        ....
+        ....
+        styleUrls : ["./angular2-select.css"]
+    })
+
+```
+
+### Configuration
 
 #### Systemjs
 
