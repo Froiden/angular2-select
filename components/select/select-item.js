@@ -7,6 +7,7 @@ class SelectItem {
         if (typeof source === 'object') {
             this.id = source.id || source.text;
             this.text = source.text;
+            this.properties = source.properties;
             if (source.children && source.text) {
                 this.children = source.children.map((c) => {
                     let r = new SelectItem(c);

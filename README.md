@@ -15,6 +15,7 @@ npm install --save froiden-angular2-select
 2. [Without Ajax Multi Select](https://plnkr.co/edit/tpPFFf8T1yUrVCCxrXu3)
 3. [With Ajax Single Select](https://plnkr.co/edit/iAyag6)
 4. [With Ajax Multi Select](https://plnkr.co/edit/Ngqrpwr8rbX5QmZApwYA)
+5. [Update with Ajax Multi Select](https://plnkr.co/edit/C78c70Vw7zXwGIMp0i2G?p=preview)
 
 ## Add angular2-select.css
 Include [angular2-select.css](https://github.com/Froiden/angular2-select/blob/master/css/angular2-select.css) in your controller.
@@ -99,6 +100,8 @@ ajax.
 ```typescript
     public countries : any;
     private selectOptions = {
+        "idField" : "id",
+        "textField" : "text",
         "multiple" : true,
         "allowClear" : true,
         "debounceTime" : 300,
@@ -132,6 +135,8 @@ ajax.
 ```typescript
     public countries : any;
     private selectOptions = {
+        "idField" : "id",
+        "textField" : "text",
         "multiple" : true,
         "allowClear" : true,
         "debounceTime" : 300,
@@ -166,10 +171,65 @@ ajax.
 ```
 NOTE: Always put `SEARCH_VALUE` in your `url`. We will automatically replace `SEARCH_VALUE` with input entered by you.
 
+### For Update (With Ajax request)[View Demo](https://plnkr.co/edit/C78c70Vw7zXwGIMp0i2G?p=preview)
+```typescript
+    public countries : any = [{
+       "countryCode" : '1',
+       "countryName" : "India"
+   }];
+    private selectOptions = {
+        "idField" : "countryCode",
+        "textField" : "countryName",
+        "multiple" : true,
+        "allowClear" : true,
+        "debounceTime" : 300,
+        "placeholder" : "Select countries...",
+        ajax : {
+            "requestType" : "get",
+            "url"      : 'http://demo.com/api/countries?fields=id|name&limit=-1&filters={"name":{"type":"search","value":"SEARCH_VALUE"}}',
+            "authToken": AUTH TOKEN IF REQUIRED,
+            responseData : (response : any) => {
+                let currentValue = response.data;
+                let value : Array<any> = [];
+                currentValue.forEach((item : {countryCode : string, countryName : string}) => {
+                    value.push({
+                        countryCode  : item.countryCode,
+                        countryName: item.countryName
+                    });
+                });
+                return value;
+            }
+        },
+        processResults : (modelObject : any) => {
+            let selectValues : Array<any> = [];
+            modelObject.forEach((item : {countryCode : string, countryName : string}) => {
+                selectValues.push({
+                    countryCode : item.countryCode,
+                    countryName : item.countryName,
+                });
+            });
+            return selectValues;
+        }
+    }
+```
+NOTE: Always put `SEARCH_VALUE` in your `url`. We will automatically replace `SEARCH_VALUE` with input entered by you.
+
 ## [(ngModel)]
 You need to set `[(ngModel)]` with your Component variable for which you want two way data binding.
 
 ## Input properties (selectOptions)
+
+### idField(optional)
+
+*default - id*
+
+String value to set id field.
+
+### textField(optional)
+
+*default - text*
+
+String value to set text field.
 
 ### multiple
 

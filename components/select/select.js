@@ -66,7 +66,7 @@ let SelectComponent = class SelectComponent {
         this.idField = 'id';
         this.textField = 'text';
         this.multiple = false;
-        this.settings = '';
+        this.settings = {};
         this.ajaxLoad = false;
         this.searchSubject = new Subject_1.Subject();
         this.searchObserve = this.searchSubject.asObservable();
@@ -111,21 +111,20 @@ let SelectComponent = class SelectComponent {
             this._active = selectedItems.map((item) => {
                 let data = areItemsStrings
                     ? item
-                    : { id: item[this.idField], text: item[this.textField] };
+                    : { id: item[this.idField], text: item[this.textField], properties: item };
                 return new select_item_1.SelectItem(data);
             });
         }
     }
     //get accessor
     get value() {
-        return this.inputValue;
+        return '';
     }
     ;
     //set accessor including call the onchange callback
     set value(v) {
         if (v !== this.inputValue) {
             this.inputValue = v;
-            this.onChangeCallback(v);
         }
     }
     //Set touched on blur
@@ -136,6 +135,7 @@ let SelectComponent = class SelectComponent {
     writeValue(value) {
         if (value !== this.inputValue) {
             this.inputValue = value;
+            this.active = this.inputValue;
         }
     }
     //From ControlValueAccessor interface
@@ -240,11 +240,11 @@ let SelectComponent = class SelectComponent {
                 }
                 else {
                     this._items = value.filter((item) => {
-                        if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                        if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item[this.textField] && item[this.idField])) {
                             return item;
                         }
                     });
-                    this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField] })));
+                    this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField], properties: item })));
                 }
                 if (this.ajaxLoad === true) {
                     this.open();
@@ -272,11 +272,11 @@ let SelectComponent = class SelectComponent {
                         }
                         else {
                             this._items = value.filter((item) => {
-                                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item[this.textField] && item[this.idField])) {
                                     return item;
                                 }
                             });
-                            this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField] })));
+                            this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField], properties: item })));
                         }
                         if (this.ajaxLoad === true) {
                             this.open();
@@ -295,11 +295,11 @@ let SelectComponent = class SelectComponent {
                         }
                         else {
                             this._items = value.filter((item) => {
-                                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item[this.textField] && item[this.idField])) {
                                     return item;
                                 }
                             });
-                            this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField] })));
+                            this.itemObjects = this._items.map((item) => (typeof item === 'string' ? new select_item_1.SelectItem(item) : new select_item_1.SelectItem({ id: item[this.idField], text: item[this.textField], properties: item })));
                         }
                         if (this.ajaxLoad === true) {
                             this.open();
@@ -321,6 +321,12 @@ let SelectComponent = class SelectComponent {
                 this.requestType = jsonObject.ajax.requestType;
             }
         }
+        if (jsonObject.idField != undefined) {
+            this.idField = jsonObject.idField;
+        }
+        if (jsonObject.textField != undefined) {
+            this.textField = jsonObject.textField;
+        }
         if (jsonObject.allowClear) {
             this.allowClear = jsonObject.allowClear;
         }
@@ -341,7 +347,12 @@ let SelectComponent = class SelectComponent {
             this.data.next(this.active);
             this.doEvent('removed', item);
             if (this.settings.processResults != undefined) {
-                let modelValue = this.settings.processResults(this.active);
+                let activeObject = this.active;
+                let previousValues = [];
+                activeObject.forEach((item) => {
+                    previousValues.push(item.properties);
+                });
+                let modelValue = this.settings.processResults(previousValues);
                 this.onChangeCallback(modelValue);
             }
             else {
@@ -367,7 +378,7 @@ let SelectComponent = class SelectComponent {
         let selectValues = [];
         selectValues.push({
             id: modelObject.id,
-            textValue: modelObject.text,
+            text: modelObject.text,
         });
         return selectValues;
     }
@@ -376,7 +387,7 @@ let SelectComponent = class SelectComponent {
         modelObject.forEach((item) => {
             selectValues.push({
                 id: item.id,
-                textValue: item.text,
+                text: item.text,
             });
         });
         return selectValues;
@@ -476,7 +487,13 @@ let SelectComponent = class SelectComponent {
             this.active.push(value);
             this.data.next(this.active);
             if (this.settings.processResults != undefined) {
-                let modelValue = this.settings.processResults(this.active);
+                let activeObject = this.active;
+                let previousValues = [];
+                activeObject.forEach((item) => {
+                    previousValues.push(item.properties);
+                });
+                let modelValue = this.settings.processResults(previousValues);
+                console.log(previousValues);
                 this.onChangeCallback(modelValue);
             }
             else {
@@ -486,7 +503,7 @@ let SelectComponent = class SelectComponent {
         }
         if (this.multiple === false) {
             if (this.settings.processResults != undefined) {
-                let modelValue = this.settings.processResults(value);
+                let modelValue = this.settings.processResults(value.properties);
                 this.onChangeCallback(modelValue);
             }
             else {
@@ -507,14 +524,6 @@ let SelectComponent = class SelectComponent {
         }
     }
 };
-__decorate([
-    core_1.Input(), 
-    __metadata('design:type', String)
-], SelectComponent.prototype, "idField", void 0);
-__decorate([
-    core_1.Input(), 
-    __metadata('design:type', String)
-], SelectComponent.prototype, "textField", void 0);
 __decorate([
     core_1.Input(), 
     __metadata('design:type', Object)

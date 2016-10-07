@@ -1,6 +1,7 @@
 export class SelectItem {
   public id:string;
   public text:string;
+  public properties:any;
   public children:Array<SelectItem>;
   public parent:SelectItem;
 
@@ -11,6 +12,7 @@ export class SelectItem {
     if (typeof source === 'object') {
       this.id = source.id || source.text;
       this.text = source.text;
+      this.properties = source.properties;
       if (source.children && source.text) {
         this.children = source.children.map((c:any) => {
           let r:SelectItem = new SelectItem(c);
@@ -18,6 +20,7 @@ export class SelectItem {
           return r;
         });
         this.text = source.text;
+
       }
     }
   }

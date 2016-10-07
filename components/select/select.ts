@@ -134,10 +134,10 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
 export class SelectComponent implements OnInit, ControlValueAccessor {
   public allowClear:boolean = false;
   public placeholder:string = '';
-  @Input() public idField:string = 'id';
-  @Input() public textField:string = 'text';
+  public idField:string = 'id';
+  public textField:string = 'text';
   public multiple:boolean = false;
-  @Input() public settings:any = '';
+  @Input() public settings:any = {};
   public ajaxLoad:boolean = false;
 
   private searchSubject  = new Subject<string>();
@@ -167,7 +167,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this._active = selectedItems.map((item:any) => {
         let data = areItemsStrings
             ? item
-            : { id: item[this.idField], text: item[this.textField] };
+            : { id: item[this.idField], text: item[this.textField], properties: item };
 
         return new SelectItem(data);
       });
@@ -195,14 +195,14 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
 
   //get accessor
   get value(): any {
-    return this.inputValue;
+    return '';
   };
 
   //set accessor including call the onchange callback
   set value(v: any) {
     if (v !== this.inputValue) {
       this.inputValue = v;
-      this.onChangeCallback(v);
+      //this.onChangeCallback(v);
     }
   }
 
@@ -215,6 +215,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
   writeValue(value: any) {
     if (value !== this.inputValue) {
       this.inputValue = value;
+      this.active = this.inputValue;
     }
   }
 
@@ -235,7 +236,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
   private inputMode:boolean = false;
   private optionsOpened:boolean = false;
   private behavior:OptionsBehavior;
-  private inputValue:string = '';
+  private inputValue:any = '';
   private _items:Array<any> = [];
   private _disabled:boolean = false;
   private _active:Array<SelectItem> = [];
@@ -345,12 +346,12 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
               this._items = this.itemObjects = [];
             } else {
               this._items = value.filter((item:any) => {
-                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item[this.textField] && item[this.idField])) {
                   return item;
                 }
               });
 
-              this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+              this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField], properties:item})));
             }
             if(this.ajaxLoad === true) {
               this.open();
@@ -381,12 +382,12 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
                           this._items = this.itemObjects = [];
                         } else {
                           this._items = value.filter((item:any) => {
-                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item[this.textField] && item[this.idField])) {
                               return item;
                             }
                           });
+                          this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField], properties:item})));
 
-                          this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
                         }
                         if(this.ajaxLoad === true) {
                           this.open();
@@ -409,12 +410,12 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
                           this._items = this.itemObjects = [];
                         } else {
                           this._items = value.filter((item:any) => {
-                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item.text && item.id)) {
+                            if ((typeof item === 'string' && item) || (typeof item === 'object' && item && item[this.textField] && item[this.idField])) {
                               return item;
                             }
                           });
 
-                          this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField]})));
+                          this.itemObjects = this._items.map((item:any) => (typeof item === 'string' ? new SelectItem(item) : new SelectItem({id: item[this.idField], text: item[this.textField], properties:item})));
                         }
                         if(this.ajaxLoad === true) {
                           this.open();
@@ -449,7 +450,13 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       }
     }
 
+    if(jsonObject.idField != undefined) {
+      this.idField = jsonObject.idField;
+    }
 
+    if(jsonObject.textField != undefined) {
+      this.textField = jsonObject.textField;
+    }
 
     if(jsonObject.allowClear) {
       this.allowClear = jsonObject.allowClear;
@@ -475,7 +482,12 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this.doEvent('removed', item);
 
       if(this.settings.processResults != undefined) {
-        let modelValue = this.settings.processResults(this.active);
+        let activeObject = this.active;
+        let previousValues : Array<any> = [];
+        activeObject.forEach((item : any) => {
+          previousValues.push(item.properties);
+        });
+        let modelValue = this.settings.processResults(previousValues);
         this.onChangeCallback(modelValue);
       }else {
         let modelValue = this.multiProcessResults(this.active);
@@ -503,7 +515,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
     let selectValues : Array<any> = [];
     selectValues.push({
       id : modelObject.id,
-      textValue : modelObject.text,
+      text : modelObject.text,
     });
     return selectValues;
   }
@@ -513,7 +525,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
     modelObject.forEach((item : {id : number, text : string}) => {
       selectValues.push({
         id : item.id,
-        textValue : item.text,
+        text : item.text,
       });
     });
     return selectValues;
@@ -594,6 +606,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
   }
 
   private open():void {
+
     this.options = this.itemObjects
         .filter((option: SelectItem) => (this.multiple === false ||
         this.multiple === true &&
@@ -628,7 +641,13 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this.data.next(this.active);
 
       if(this.settings.processResults != undefined) {
-        let modelValue = this.settings.processResults(this.active);
+        let activeObject = this.active;
+        let previousValues : Array<any> = [];
+        activeObject.forEach((item : any) => {
+          previousValues.push(item.properties);
+        });
+        let modelValue = this.settings.processResults(previousValues);
+        console.log(previousValues);
         this.onChangeCallback(modelValue);
       }else {
         let modelValue = this.multiProcessResults(this.active);
@@ -638,7 +657,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
 
     if (this.multiple === false) {
       if(this.settings.processResults != undefined) {
-        let modelValue = this.settings.processResults(value);
+        let modelValue = this.settings.processResults(value.properties);
         this.onChangeCallback(modelValue);
       }else {
         let modelValue = this.singleProcessResults(value);
