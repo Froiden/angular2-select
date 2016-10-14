@@ -15,7 +15,7 @@ npm install --save froiden-angular2-select
 2. [Without Ajax Multi Select](https://plnkr.co/edit/tpPFFf8T1yUrVCCxrXu3?p=preview)
 3. [With Ajax Single Select](https://plnkr.co/edit/iAyag6?p=preview)
 4. [With Ajax Multi Select](https://plnkr.co/edit/Ngqrpwr8rbX5QmZApwYA?p=preview)
-5. [Update with Ajax Multi Select](https://plnkr.co/edit/C78c70Vw7zXwGIMp0i2G?p=preview?p=preview)
+5. [Update with Ajax Multi Select](https://plnkr.co/edit/C78c70Vw7zXwGIMp0i2G?p=preview)
 
 ## Add angular2-select.css
 Include [angular2-select.css](https://github.com/Froiden/angular2-select/blob/master/css/angular2-select.css) in your controller.
